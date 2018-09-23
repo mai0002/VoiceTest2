@@ -85,6 +85,7 @@ class ViewController: UIViewController, SFSpeechRecognizerDelegate {
             recordButton.setTitle("Stop recording", for: [])
         }
     }
+    
     //渡された文字列が入ったアラートを表示する
     func showStrAlert(str: String){
         // UIAlertControllerを作成する.
@@ -96,7 +97,7 @@ class ViewController: UIViewController, SFSpeechRecognizerDelegate {
         // OKのActionを追加する.
         myAlert.addAction(myOkAction)
         // UIAlertを発動する.
-        present(myAlert, animated: true, completion: nil)
+        present(myAlert, animated: true, completion: nil)           
     }
     //録音を開始する
     private func startRecording() throws {
