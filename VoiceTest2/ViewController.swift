@@ -34,8 +34,16 @@ class ViewController: UIViewController, SFSpeechRecognizerDelegate {
     var recordButton : UIButton!
     //文字音声認識された
     var voiceStr : String! = ""
+    
+    @IBOutlet weak var massageResult: UILabel!
+    
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        print("１：初期状態")
+        print(voiceStr)
+        audioEngine.stop() // audioは最初停止状態
+        
         //録音を開始するボタンの設定
         recordButton = UIButton()
         recordButton.frame = CGRect(x: 50, y: 50, width: 200, height: 40)
@@ -72,59 +80,62 @@ class ViewController: UIViewController, SFSpeechRecognizerDelegate {
     // MARK: 録音ボタンが押されたら呼ばれる
     @objc func recordButtonTapped(sender: UIButton) {
         if audioEngine.isRunning {
-            audioEngine.stop()
+            audioEngine.stop() // この後に、音声入力結果を成形して、resultのところに動く
             recognitionRequest?.endAudio()
             recordButton.isEnabled = false
             recordButton.setTitle("Stopping", for: .disabled)
             //録音が停止した！
             print("録音停止")
             //入力された文字列の入った文字列を表示
-            showStrAlert(str: self.voiceStr)
+            // showStrAlert()
         } else {
+            // 録音を開始する
+            massageResult.text = ""
+            print("２：録音開始")
             try! startRecording()
             recordButton.setTitle("Stop recording", for: [])
         }
     }
     
     //渡された文字列が入ったアラートを表示する
-    func showStrAlert(str: String){
-        // UIAlertControllerを作成する.
-        let myAlert: UIAlertController = UIAlertController(title: "音声認識結果", message: str, preferredStyle: .alert)
-        // OKのアクションを作成する.
-        let myOkAction = UIAlertAction(title: "OK", style: .default) { action in
-            print("Action OK!!")
-        }
-        // OKのActionを追加する.
-        myAlert.addAction(myOkAction)
-        // UIAlertを発動する.
-        present(myAlert, animated: true, completion: nil)           
-    }
+    /*
+    func showStrAlert(){
+        massageResult.text = voiceStr
+    }*/
+    
     //録音を開始する
     private func startRecording() throws {
+        print("３：録音中")
         // Cancel the previous task if it's running.
         if let recognitionTask = recognitionTask {
             recognitionTask.cancel()
             self.recognitionTask = nil
         }
         let audioSession = AVAudioSession.sharedInstance()
+        
+        // 録音用のカテゴリをセット
         try audioSession.setCategory(AVAudioSessionCategoryRecord)
         try audioSession.setMode(AVAudioSessionModeMeasurement)
         try audioSession.setActive(true, with: .notifyOthersOnDeactivation)
         recognitionRequest = SFSpeechAudioBufferRecognitionRequest()
         guard let inputNode: AVAudioInputNode = audioEngine.inputNode else { fatalError("Audio engine has no input node") }
         guard let recognitionRequest = recognitionRequest else { fatalError("Unable to created a SFSpeechAudioBufferRecognitionRequest object") }
-        // Configure request so that results are returned before audio recording is finished
-        recognitionRequest.shouldReportPartialResults = true
+        
+        // オーディオ録音が完了する前に結果が返されるようにリクエストを設定する
+        recognitionRequest.shouldReportPartialResults = false
+        
         // A recognition task represents a speech recognition session.
         // We keep a reference to the task so that it can be cancelled.
         recognitionTask = speechRecognizer.recognitionTask(with: recognitionRequest) { result, error in
             var isFinal = false
             if let result = result {
                 //音声認識の区切りの良いところで実行される。
-                self.voiceStr = result.bestTranscription.formattedString
+                print("４：録音完了")
                 print(result.bestTranscription.formattedString)
+                // self.voiceStr = result.bestTranscription.formattedString
+                self.massageResult.text = result.bestTranscription.formattedString
                 isFinal = result.isFinal
-            }
+}
             if error != nil || isFinal {
                 self.audioEngine.stop()
                 inputNode.removeTap(onBus: 0)
@@ -134,13 +145,20 @@ class ViewController: UIViewController, SFSpeechRecognizerDelegate {
                 self.recordButton.setTitle("Start Recording", for: [])
             }
         }
+        
         let recordingFormat = inputNode.outputFormat(forBus: 0)
         inputNode.installTap(onBus: 0, bufferSize: 1024, format: recordingFormat) { (buffer: AVAudioPCMBuffer, when: AVAudioTime) in
             self.recognitionRequest?.append(buffer)
         }
         audioEngine.prepare()
         try audioEngine.start()
+        
+        
+        
+        
     }
+    
+    
     // MARK: SFSpeechRecognizerDelegate
     //speechRecognizerが使用可能かどうかでボタンのisEnabledを変更する
     public func speechRecognizer(_ speechRecognizer: SFSpeechRecognizer, availabilityDidChange available: Bool) {
