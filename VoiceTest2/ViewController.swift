@@ -39,10 +39,10 @@ class ViewController: UIViewController, SFSpeechRecognizerDelegate {
         
         //録音を開始するボタンの設定
         recordButton = UIButton()
-        recordButton.frame = CGRect(x: 50, y: 50, width: 200, height: 40)
+        recordButton.frame = CGRect(x: 70, y: 150, width: 200, height: 40)
         recordButton.backgroundColor = UIColor.lightGray
         recordButton.addTarget(self, action: #selector(recordButtonTapped(sender:)), for:.touchUpInside)
-        recordButton.setTitle("Start Recording", for: [])
+        recordButton.setTitle("音声入力開始", for: [])
         recordButton.isEnabled = false
         self.view.addSubview(recordButton)
         //デリゲートの設定
@@ -77,7 +77,7 @@ class ViewController: UIViewController, SFSpeechRecognizerDelegate {
             audioEngine.stop() // この後に、音声入力結果を成形して、resultのところに動く
             recognitionRequest?.endAudio()
             recordButton.isEnabled = false
-            recordButton.setTitle("Stopping", for: .disabled)
+            recordButton.setTitle("終了", for: .disabled)
             //録音が停止した！
             print("録音停止")
         } else {
@@ -85,7 +85,7 @@ class ViewController: UIViewController, SFSpeechRecognizerDelegate {
             massageResult.text = ""
             print("２：録音開始")
             try! startRecording()
-            recordButton.setTitle("Stop recording", for: [])
+            recordButton.setTitle("音声入力終了", for: [])
         }
     }
     
@@ -127,7 +127,7 @@ class ViewController: UIViewController, SFSpeechRecognizerDelegate {
                 self.recognitionRequest = nil
                 self.recognitionTask = nil
                 self.recordButton.isEnabled = true
-                self.recordButton.setTitle("Start Recording", for: [])
+                self.recordButton.setTitle("音声入力開始", for: [])
             }
         }
         
@@ -145,7 +145,7 @@ class ViewController: UIViewController, SFSpeechRecognizerDelegate {
     public func speechRecognizer(_ speechRecognizer: SFSpeechRecognizer, availabilityDidChange available: Bool) {
         if available {
             recordButton.isEnabled = true
-            recordButton.setTitle("Start Recording", for: [])
+            recordButton.setTitle("音声入力開始", for: [])
         } else {
             recordButton.isEnabled = false
             recordButton.setTitle("Recognition not available", for: .disabled)
