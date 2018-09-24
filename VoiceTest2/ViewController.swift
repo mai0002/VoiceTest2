@@ -14,26 +14,20 @@
   l107：guard let inputNode: AVAudioInputNode に書き換え
   infoplist：キー：NSMicrophoneUsageDescriptio も追加
  
-  この後やりたいこと
-  ・popupではなく、Labelに音声入力値を表示する
-  ・音声取得時間を延ばす。途中で切れる不思議
- 
  */
 
 import UIKit
 import Speech
 
 class ViewController: UIViewController, SFSpeechRecognizerDelegate {
-    // MARK: Properties
-    //localeのidentifierに言語を指定、。日本語はja-JP,英語はen-US
+    // プロパティ
+    // localeのidentifierに言語を指定。日本語はja-JP,英語はen-US
     private let speechRecognizer = SFSpeechRecognizer(locale: Locale(identifier: "ja-JP"))!
     private var recognitionRequest: SFSpeechAudioBufferRecognitionRequest?
     private var recognitionTask: SFSpeechRecognitionTask?
     private let audioEngine = AVAudioEngine()
     //録音の開始、停止ボタン
     var recordButton : UIButton!
-    //文字音声認識された
-    var voiceStr : String! = ""
     
     @IBOutlet weak var massageResult: UILabel!
     
@@ -41,8 +35,7 @@ class ViewController: UIViewController, SFSpeechRecognizerDelegate {
         super.viewDidLoad()
         
         print("１：初期状態")
-        print(voiceStr)
-        audioEngine.stop() // audioは最初停止状態
+        //audioEngine.stop() // audioは最初停止状態
         
         //録音を開始するボタンの設定
         recordButton = UIButton()
@@ -77,7 +70,8 @@ class ViewController: UIViewController, SFSpeechRecognizerDelegate {
             }
         }
     }
-    // MARK: 録音ボタンが押されたら呼ばれる
+    
+    // 録音ボタンが押されたら呼ばれる
     @objc func recordButtonTapped(sender: UIButton) {
         if audioEngine.isRunning {
             audioEngine.stop() // この後に、音声入力結果を成形して、resultのところに動く
@@ -86,8 +80,6 @@ class ViewController: UIViewController, SFSpeechRecognizerDelegate {
             recordButton.setTitle("Stopping", for: .disabled)
             //録音が停止した！
             print("録音停止")
-            //入力された文字列の入った文字列を表示
-            // showStrAlert()
         } else {
             // 録音を開始する
             massageResult.text = ""
@@ -97,16 +89,10 @@ class ViewController: UIViewController, SFSpeechRecognizerDelegate {
         }
     }
     
-    //渡された文字列が入ったアラートを表示する
-    /*
-    func showStrAlert(){
-        massageResult.text = voiceStr
-    }*/
-    
     //録音を開始する
     private func startRecording() throws {
         print("３：録音中")
-        // Cancel the previous task if it's running.
+        // 以前のタスクが実行中の場合はキャンセル
         if let recognitionTask = recognitionTask {
             recognitionTask.cancel()
             self.recognitionTask = nil
@@ -124,15 +110,14 @@ class ViewController: UIViewController, SFSpeechRecognizerDelegate {
         // オーディオ録音が完了する前に結果が返されるようにリクエストを設定する
         recognitionRequest.shouldReportPartialResults = false
         
-        // A recognition task represents a speech recognition session.
-        // We keep a reference to the task so that it can be cancelled.
+        // 認識タスクは、音声認識セッションを表す
+        // 取り消すことができるようにタスクへの参照を保持
         recognitionTask = speechRecognizer.recognitionTask(with: recognitionRequest) { result, error in
             var isFinal = false
             if let result = result {
                 //音声認識の区切りの良いところで実行される。
                 print("４：録音完了")
                 print(result.bestTranscription.formattedString)
-                // self.voiceStr = result.bestTranscription.formattedString
                 self.massageResult.text = result.bestTranscription.formattedString
                 isFinal = result.isFinal
 }
@@ -152,10 +137,6 @@ class ViewController: UIViewController, SFSpeechRecognizerDelegate {
         }
         audioEngine.prepare()
         try audioEngine.start()
-        
-        
-        
-        
     }
     
     
